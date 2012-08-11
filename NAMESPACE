@@ -1,0 +1,11 @@
+
+useDynLib(DPw)
+
+export("DPfitAllUnif","simdata","get.subset.p","getden",
+       "dWEI2","rWEI2","muinv",
+       "plotigamma","plotKwei","plotgamma",
+       "cdf","nu","dweib","sprob","H",
+       "getM",
+       "useSamp","F","F_inv","Nuniq","ASTM"
+       )
+	
