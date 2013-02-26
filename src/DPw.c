@@ -1169,12 +1169,12 @@ SEXP gibbsAllUnif( SEXP inpts, SEXP inpB, SEXP M_, SEXP inpa_D, SEXP inpib_D, SE
       REAL(post_gam)[iB] = gam;
       //REAL(post_dum)[iB] = dum;
       R_CheckUserInterrupt(); 
-      R_ProcessEvents();
+      //R_ProcessEvents();
       if(iB % printFreq == 0) 
 	{
 	  Rprintf("\v %d iterations are done...   ", iB);
 	  R_FlushConsole(); 
-	  R_ProcessEvents();
+	  //R_ProcessEvents();
 	}
       
     }

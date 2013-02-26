@@ -11,16 +11,30 @@ F_inv = function(p,w,u,s,br=c(-1000,1000),wei=FALSE)
 }
 
 
-ASTM <- function(matTs,alpha=0.05,Sig=0.01)
+ASTM <- function(matTs,lowerLimit=0.05,Sig=0.01,confidence=0.75)
   {
     ## The current code works only for the same sample size
-    ## matTs: K by mk matrix containing MOR
+    ## matTs: K by mk matrix containing MOR This code only accept the senario when mk=102 for all k or mk=347 for all k
     ## The tolerance limit value for the combined grouping
 
     m <- ncol(matTs)
     K <- nrow(matTs)
-    
-    TLCall <- quantile(matTs,prob=alpha)
+    ## The order statistics of the common sample sizes are computed in advance
+    if (length(matTs)==(360*6)){ TLCall <- sort(matTs)[101]
+    }else if (length(matTs)==(360*7)) {TLCall <- sort(matTs)[119] ##else  if (length(matTs)==(360*8)) TLCall <- sort(matTs)[136]
+    }else if (length(matTs)==(100*6)) {TLCall <- sort(matTs)[26]
+    }else if (length(matTs)==(100*7)) {TLCall <- sort(matTs)[31] ##else if (length(matTs)==(100*8)) TLCall <- sort(matTs)[36]
+    }else{
+      for (k in 1 : m) {
+        ## Find 5 % lower tolerance Limit which is the largest order statistics such that P(X_(k) < eta_{0.05}) > confidence
+        ## cat("\n k",k," ",1-pbinom(k-1,size=length(matTs),prob=lowerLimit) )
+        if( 1-pbinom(k-1,size=length(matTs),prob=lowerLimit)  < confidence)
+          {
+            TLCall <- sort(matTs)[k-1]
+            break;
+          }
+      }
+    }
     ## determine the number of pieces in each species group below/above the group tolerance limit value
     Conting <- table(c(matTs < TLCall),rep(1:K,m))
     ## conduct a chi-square test to determine if the percent of pieces below the group value is statistically significant
@@ -206,9 +220,22 @@ simdata <- function(dType,iseed=1,n=360,output=0,xs=seq(0.001,20,0.001))
         }else if (output==2)
           x7 <- probs_[1]*dlnorm(xs,meanlog=m_[1],sdlog=sdlog_[1])+
           probs_[2]*dlnorm(xs,meanlog=m_[2],sdlog=sdlog_[2])
-      ## F_inv(p=0.05,w=probs_,u=m_,s=sdlog_)
-      ## = 7.077309
 
+      ## m_<- 2.08 ; sdlog_ <- 0.31
+      ## if (output == 0 || output == 3 || output == 4)
+      ##   {
+          
+      ##     x8 <- rlnorm(n,meanlog=m_,sdlog=sdlog_)
+          
+      ##   }else if (output==1){
+
+      ##     x8 <- qlnorm(0.05,meanlog=m_,sdlog=sdlog_)
+
+      ##   }else if (output==2)
+      ##     x8 <- dlnorm(xs,meanlog=m_,sdlog=sdlog_)
+      ## ##
+      qlnorm(0.05,meanlog=m_,sdlog=sdlog_)
+      ## = 6.665939
       
       x <- rbind(x1,x2,x3,x4,x5,x6,x7)
       
@@ -751,7 +778,7 @@ DPfitAllUnif <- function(ts,
                  "AR","can")
   names(re$AR) <-  names(re$can) <- c("beta","lambda","D")
                    
-
+  re$S <- re$S + 1
   re$para = list(
     ts=ts,B=B,minD=minD,maxD=maxD,
     aphi=aphi,loc.phi=loc.phi,
