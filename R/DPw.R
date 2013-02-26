@@ -217,8 +217,11 @@ simdata <- function(dType,iseed=1,n=360,output=0,xs=seq(0.001,20,0.001))
       
     }else if(dType==2){
       
-      scales <- seq(10.803-0.6*6,10.803,length.out=7)
-
+      ## scales <- seq(10.803-0.6*6,10.803,length.out=7)
+      scales <- c(10.803,11.560,11.906,12.858,12.988,15.194,15.651)
+      ## The distribution of the weakest specie is set as the same as the estimated dist from JEG
+      ## These values are selected to make the percentage gaps between the species' 5th quantiles to be the same as
+      ## our confidential dataset.
       if (output==0 || output == 3 || output == 4){
         x <- NULL
         for ( i in 1 : 7) 
@@ -240,7 +243,7 @@ simdata <- function(dType,iseed=1,n=360,output=0,xs=seq(0.001,20,0.001))
       ## the difference of about 0.3 return interesting simulation result 
     }else if (dType==3){
 
-      scales <- c(10,10,10.803,10.803,10.803,10.803,10.803)
+      scales <-c(rep(10.803,2),rep(11.906,5))
       
       if (output==0 || output == 3 || output == 4){
         x <- NULL

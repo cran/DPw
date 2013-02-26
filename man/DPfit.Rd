@@ -25,7 +25,7 @@
 %- Also NEED an '\alias' for EACH other topic documented here.
 
 \title{
-Fit the Weibull Dirichlet process mixture.
+Semiparametric Bayesian procedure for selecting a subset containing the weakest species with an acceptably high probability.
 }
 
 \description{

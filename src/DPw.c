@@ -75,7 +75,10 @@ int sample(double prob[], const int size)
   double p_tot=0.0;
   int ih,rN[size];
   for (ih = 0; ih < size; ih ++) p_tot += prob[ih];
-  if (p_tot <0) error("At least one prob must be positive!");
+  if (p_tot <0) 
+    {
+      error("At least one prob must be positive!");
+    }
   for (ih = 0; ih < size; ih ++) prob[ih] /= p_tot;
 
   rmultinom(1, prob, size, rN);
@@ -1165,9 +1168,14 @@ SEXP gibbsAllUnif( SEXP inpts, SEXP inpB, SEXP M_, SEXP inpa_D, SEXP inpib_D, SE
       REAL(post_phi)[iB] = phi;
       REAL(post_gam)[iB] = gam;
       //REAL(post_dum)[iB] = dum;
-	
-      
-      if(iB % printFreq == 0) Rprintf(" %d iterations are done...   ", iB);
+      R_CheckUserInterrupt(); 
+      R_ProcessEvents();
+      if(iB % printFreq == 0) 
+	{
+	  Rprintf("\v %d iterations are done...   ", iB);
+	  R_FlushConsole(); 
+	  R_ProcessEvents();
+	}
       
     }
   for (ih = 0 ; ih < Nacc ; ih ++)
