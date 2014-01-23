@@ -877,6 +877,7 @@ SEXP gibbsAllUnif( SEXP inpts, SEXP inpB, SEXP M_, SEXP inpa_D, SEXP inpib_D, SE
 		   // SEXP inpmax_dum, 
 		   SEXP inpburnin,  SEXP inpprintFreq){
 
+  GetRNGstate();
   /* ==== :Model description: =====
      ti | beta_i Klambda_i ~ weibull(lambdai,beta_i)
      beta_i, Klambda_i | G ~ G
@@ -1007,7 +1008,7 @@ SEXP gibbsAllUnif( SEXP inpts, SEXP inpB, SEXP M_, SEXP inpa_D, SEXP inpib_D, SE
   SEXP post_can = allocVector(REALSXP,Nacc); // ct_integ_tot:
   SET_VECTOR_ELT(res, 11, post_can);
   
-  GetRNGstate();
+
   
   // Let's Roll! MCMC! 
   for (int iB = 0 ; iB < B ; iB++)
@@ -1218,6 +1219,7 @@ double mixtureP(double pr[],const double ti, const double betas[], const double 
 
 SEXP getDens(SEXP ts_, SEXP weightS_, SEXP Klambdas_, SEXP betas_, SEXP M_, SEXP B_,SEXP alpha_,SEXP densi_)
 {
+  GetRNGstate();
   const double *ts= REAL(ts_);
   const int lt = length(ts_);
   const int M = INTEGER(M_)[0]; // truncation value 
@@ -1239,7 +1241,7 @@ SEXP getDens(SEXP ts_, SEXP weightS_, SEXP Klambdas_, SEXP betas_, SEXP M_, SEXP
   SEXP NconvItr = allocVector(INTSXP, B); 
   SET_VECTOR_ELT(res, 2, NconvItr); 
 
-  GetRNGstate();
+
 
   for (int iB=0; iB < B; iB++)
     {
@@ -1331,6 +1333,7 @@ double mixtureP_weib(double pr[],const double ti, const double betas[], const do
 
 SEXP getDens_weib(SEXP ts_, SEXP weightS_, SEXP Lambdas_, SEXP betas_, SEXP M_, SEXP B_,SEXP alpha_,SEXP densi_)
 {
+  GetRNGstate();
   const double *ts= REAL(ts_);
   const int lt = length(ts_);
   const int M = INTEGER(M_)[0]; // truncation value 
@@ -1352,7 +1355,7 @@ SEXP getDens_weib(SEXP ts_, SEXP weightS_, SEXP Lambdas_, SEXP betas_, SEXP M_, 
   SEXP NconvItr = allocVector(INTSXP, B); 
   SET_VECTOR_ELT(res, 2, NconvItr); 
 
-  GetRNGstate();
+
 
   for (int iB=0; iB < B; iB++)
     {
