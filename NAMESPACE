@@ -1,11 +1,15 @@
 
 useDynLib(DPw)
 
-export("DPfitAllUnif","simdata","get.subset.p","getden",
-       "dWEI2","rWEI2","muinv",
-       "plotigamma","plotKwei","plotgamma",
-       "cdf","nu","dweib","sprob","H",
-       "getM",
-       "useSamp","F","F_inv","Nuniq","ASTM"
+import(fOptions)
+export(
+       "MCMC.DPw","MCMC.DPw.dp","getM","sprob.semi","get.subset","getden",
+       "CDF.eBayes","nu","dweib","sprob","H","pr.discrete","F","F_inv","beliefToW",
+       "muinv","simdata","Nuniq", "useSamp",
+       "TL","ASTM","ASTMTL","ASTMMed"
        )
-	
+
+
+
+
+

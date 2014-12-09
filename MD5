@@ -1,8 +1,9 @@
-4fd8c0ece8d5b99b21f081782e998070 *DESCRIPTION
-445893da14a12f6656add9542705d569 *NAMESPACE
-dfd12a8c19ce9e3c2a2ccfd6dd1ae0ff *R/DPw.R
-149885fe85bfe5d820272cb40a188a6f *R/SpeciesData/spdat1.csv.html
-c908881793ebb97ea0f82f1004e0eb96 *R/SpeciesData/spdat2.csv.html
-7f93b985054f520d81e07a66b8814421 *R/SpeciesData/spdat2.html
-f33175ce09b6851249377f2698cb091a *man/DPfit.Rd
-3b8485bce3ea87abdb2a03012d5ef44f *src/DPw.c
+88c20eb26ebf53ad2621fcdf2ced4a95 *DESCRIPTION
+c938df962699f90edd9bf57df5bdf857 *NAMESPACE
+4ce9927aa909a87c80a3125dba5ba577 *R/DPw.R
+81462751a2072b470fdc384646dd6e76 *man/ASTM.Rd
+edbdb9eb67c8ee71562325d51efe1e31 *man/accesary.Rd
+d6dfcdaf1a179a9780a6b90cc0af76f8 *man/get.subset.Rd
+0f228599562debce9393118f51990bd5 *man/nonpara.Rd
+e49c3d7151d237f77cba8892c606043f *man/semipara.Rd
+cb525cba75106e3ce685f0c505a0261f *src/DPw.c

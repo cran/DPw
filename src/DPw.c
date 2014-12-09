@@ -87,6 +87,7 @@ int sample(double prob[], const int size)
     {
       if(rN[ih]==1) return(ih);
     }
+  return 1;
 }
 
 
@@ -152,7 +153,14 @@ double rigamma( const double shape, const double scale)
 
 
 
-
+double max_MatScal(const int K, const int m, const double mat[K][m],const double scal)
+{
+  double tempDbl1 = scal;
+  for (int ik = 0; ik < K; ik++)
+    for (int im = 0; im < m; im++)
+      if( tempDbl1 < mat[K][m]) tempDbl1 = mat[K][m];
+  return tempDbl1;
+}
 
 double max_VecScal(const double vec[],
 		   const double scal,
@@ -226,9 +234,9 @@ SEXP gibbs( SEXP inpts, SEXP inpB, SEXP M_, SEXP inpa_D, SEXP inpib_D, SEXP inpa
   const int printFreq = INTEGER(inpprintFreq)[0];
 
  
-  double phi=0, gam=0, D=0, beta=0, qi0=0, candi=0,tempDbl1=0, w=0,i1=0, i2=0,MHrate=0.0,dum=(max_dum+1.0)/2.0; 
+  double phi=0, gam=0, D=0, candi=0, w=0,i1=0, i2=0,MHrate=0.0,dum=(max_dum+1.0)/2.0; 
   double can[2]={2.0,2.0}, ct_tot[2]={1.0,1.0},ct_acc[2]={1.0,1.0};
-  int Nuniq = 0,tempInt1 = 0, iN=0,ih=0,idh=0, S[N];
+  int iN=0,ih=0,idh=0, S[N];
   double Klambdas[M],betas[M],vs[M],postprob[M],weightS[M]; // change the size 
   const double min_beta = 0.1;  
   const double min_dum = 1.001;
@@ -554,14 +562,14 @@ SEXP gibbsUnif( SEXP inpts, SEXP inpB, SEXP M_, SEXP inpa_D, SEXP inpib_D, SEXP 
   const int printFreq = INTEGER(inpprintFreq)[0];
 
  
-  double phi=0, gam=0, D=0, beta=0, qi0=0, candi=0,tempDbl1=0, w=0,i1=0, i2=0,MHrate=0.0,dum=(max_dum+1.0)/2.0; 
+  double phi=0, gam=0, D=0,  candi=0, w=0,i1=0, i2=0,MHrate=0.0,dum=(max_dum+1.0)/2.0; 
   const int Nacc = 4;
   double can[Nacc], ct_tot[Nacc],ct_acc[Nacc];
   can[0]=2.0;can[1]=2.0;can[2]=15.0;can[3]=2.0;
   ct_tot[0]=1.0;ct_tot[1]=1.0;ct_tot[2]=1.0;ct_tot[3]=1.0;
   ct_acc[0]=1.0;ct_acc[1]=1.0;ct_acc[2]=1.0;ct_acc[3]=1.0;
 
-  int Nuniq = 0,tempInt1 = 0, iN=0,ih=0,idh=0, S[N];
+  int iN=0,ih=0,idh=0, S[N];
   double Klambdas[M],betas[M],vs[M],postprob[M],weightS[M]; // change the size 
   const double min_beta = 0.1;  
   const double min_dum = 1.001;
@@ -862,21 +870,15 @@ SEXP gibbsUnif( SEXP inpts, SEXP inpB, SEXP M_, SEXP inpa_D, SEXP inpib_D, SEXP 
 
 
 
-// // declarations (necessary for C++ codes)
-// extern "C" {
-//   SEXP gibbsAllUnif( SEXP inpts, SEXP inpB, SEXP M_, SEXP inpa_D, SEXP inpib_D, SEXP inpaphi, SEXP inploc_phi, 
-// 		     SEXP inpaGam, SEXP inploc_bGam, 
-// 		     //SEXP inpmax_dum, 
-// 		     SEXP inpburnin,  SEXP inpprintFreq) ;
-// }
-
 
 
 SEXP gibbsAllUnif( SEXP inpts, SEXP inpB, SEXP M_, SEXP inpa_D, SEXP inpib_D, SEXP inpaphi, SEXP inploc_phi, 
 		   SEXP inpaGam, SEXP inploc_Gam, 
 		   // SEXP inpmax_dum, 
 		   SEXP inpburnin,  SEXP inpprintFreq){
-
+  R_CheckUserInterrupt(); 
+  R_ProcessEvents();
+  R_FlushConsole(); 
   GetRNGstate();
   /* ==== :Model description: =====
      ti | beta_i Klambda_i ~ weibull(lambdai,beta_i)
@@ -912,7 +914,7 @@ SEXP gibbsAllUnif( SEXP inpts, SEXP inpB, SEXP M_, SEXP inpa_D, SEXP inpib_D, SE
   const int printFreq = INTEGER(inpprintFreq)[0];
 
  
-  double phi=0, gam=0, D=0, beta=0, candi=0,tempDbl1=0, w=0,i1=0, i2=0,MHrate=0.0; 
+  double phi=0, gam=0, D=0, candi=0, w=0,i1=0, i2=0,MHrate=0.0; 
   const int Nacc = 3;
   // beta, Lambda, D 
   double can[Nacc], ct_tot[Nacc],ct_acc[Nacc];
@@ -964,7 +966,7 @@ SEXP gibbsAllUnif( SEXP inpts, SEXP inpB, SEXP M_, SEXP inpa_D, SEXP inpib_D, SE
   for (ih = 0 ; ih < M ; ih ++)
     {
       Lambdas[ih] =  runif(smallValue,
-			    gam); // return double
+			   gam); // return double
       betas[ih] = runif(
 			smallValue, // min
 			phi // max
@@ -972,7 +974,9 @@ SEXP gibbsAllUnif( SEXP inpts, SEXP inpB, SEXP M_, SEXP inpa_D, SEXP inpib_D, SE
     }
 
   // Storage
-
+  R_CheckUserInterrupt(); 
+  R_ProcessEvents();
+  R_FlushConsole(); 
 
 
   // http://stackoverflow.com/questions/8720550/how-to-return-array-of-structs-from-call-to-c-shared-library-in-r
@@ -1170,11 +1174,380 @@ SEXP gibbsAllUnif( SEXP inpts, SEXP inpB, SEXP M_, SEXP inpa_D, SEXP inpib_D, SE
       REAL(post_gam)[iB] = gam;
       //REAL(post_dum)[iB] = dum;
       R_CheckUserInterrupt(); 
-      //R_ProcessEvents();
+      R_ProcessEvents();
+      R_FlushConsole(); 
       if(iB % printFreq == 0) 
 	{
 	  Rprintf("\v %d iterations are done...   ", iB);
-	  R_FlushConsole(); 
+	  //R_ProcessEvents();
+	}
+      
+    }
+  for (ih = 0 ; ih < Nacc ; ih ++)
+    {
+      REAL(post_AR)[ih] = ct_acc[ih]/ct_tot[ih];
+      REAL(post_can)[ih] = can[ih];
+    }
+  PutRNGstate();
+  UNPROTECT(1);
+  return res;
+
+}
+
+
+
+
+SEXP gibbsAllUnifAllSample( SEXP inpts, 
+			    SEXP inpB, 
+			    
+			    SEXP M_, SEXP inpa_D, SEXP inpib_D, SEXP inpaphi, SEXP inploc_phi, 
+			    SEXP inpaGam, SEXP inploc_Gam, 
+
+			    SEXP inpburnin,  SEXP inpprintFreq,
+			    SEXP K_, 
+			    SEXP mks_,
+			    SEXP max_mk_)
+{
+  // K = length(mks) the number of species
+  // mks = the number of samples from each species
+  // inpts = a vector of length sum(mks) containing all the species samples 
+  R_CheckUserInterrupt(); 
+  R_ProcessEvents();
+  R_FlushConsole(); 
+  GetRNGstate();
+  /* ==== :Model description: =====
+     tki | beta_ki lambda_ki ~ weibull(lambda_ki,beta_ki)
+     beta_ki, lambda_ki | Gk ~ Gk
+     Gk ~ DP(D,G0)
+     where G0 =  unif(beta; 0.0001,phi) * unif(lambda;0.001,scale=gam) 
+     phi     ~  pareto(shape=aphi*,location=loc_phi*) 
+     gam     ~  pareto(shape=aGam*,location=loc_Gam*)
+     D       ~  unif(a_D*,ib_D*)
+  */
+  
+  // === Importing values === // 
+
+  const int B = INTEGER(inpB)[0]; 
+  const int M = INTEGER(M_)[0]; // step 1
+  const double a_D = REAL(inpa_D)[0];                   // step 2
+  const double ib_D = REAL(inpib_D)[0]; 
+  const double aphi = REAL(inpaphi)[0];               // step 3
+  const double loc_phi = REAL(inploc_phi)[0];               
+  const double aGam = REAL(inpaGam)[0];               // step 4  
+  const double loc_Gam = REAL(inploc_Gam)[0]; 
+  //const double max_dum = REAL(inpmax_dum)[0];   // default value should be 2 by Kottas
+  const int burnin = INTEGER(inpburnin)[0];
+  const int printFreq = INTEGER(inpprintFreq)[0];
+  const int * mks = INTEGER(mks_);
+
+  const int max_mk = INTEGER(max_mk_)[0];
+  const int K = INTEGER(K_)[0];
+  double ts[K][max_mk];
+  int m_temp = 0,cumsum_m[K];
+  for (int ik = 0 ;ik < K; ik ++)
+    {
+      cumsum_m[ik] = m_temp; // contains 0, mks[0], mks[0] + mks[1], mks[0] + mks[1] + mks[2],...
+      for (int ipat = 0 ; ipat < mks[ik] ; ipat++)
+	{
+	  ts[ik][ipat] = REAL(inpts)[ipat + m_temp]; // array of length N
+	}
+      m_temp += mks[ik];
+    }
+  const double tot_m = m_temp;
+  // m_sum contains the total number of samples
+  
+  double phi=0, gam=0, D=0, candi=0, w=0,i1=0, i2=0,MHrate=0.0; 
+  const int Nacc = 3;
+  // beta, Lambda, D 
+  double can[Nacc], ct_tot[Nacc],ct_acc[Nacc];
+  can[0]=0.5;can[1]=0.5;can[2]=0.5;
+  ct_tot[0]=1.0;ct_tot[1]=1.0;ct_tot[2]=1.0;
+  ct_acc[0]=1.0;ct_acc[1]=1.0;ct_acc[2]=1.0;
+  int iN=0,ih=0,ik=0, idh=0, S[K][max_mk],reasonable;
+  double Lambdas[K][M],betas[K][M],vs[K][M],postprob[K][M],weightS[K][M]; // change the size 
+  const double smallValue = 0.1;  
+  double maxCan[Nacc]; // beta, Lambda, D 
+  maxCan[0]=10;maxCan[1]=10;maxCan[2]=1.2;
+  double minCan[Nacc]; // beta, Lambda, D 
+  minCan[0]=0.001;minCan[1]=0.001;minCan[2]=0.1;
+  // beta is supposed to be from uniform (0,max_gum), however if beta<0.01, dwei(shape=beta,scale=Lambda) becomes undefined
+  // for Lambda > 20,000. As our model should favor the set (beta, Lambda) = about (3,20,000), we must restrict any possible values of beta
+  // to accept Lambda = 20,000. For this reason, we turncate the left hand extreme value of beta
+  // Create initial values of Lambdas, betas:
+  // ---------------------------------- //
+  // Initializations of D, gam and phi  //
+  // ---------------------------------- //
+  D = runif(
+	    a_D, // min 
+	    ib_D  // max
+	    );
+  gam = rpareto(loc_Gam,
+		aGam);
+
+  phi = rpareto(loc_phi, // location > 0
+		aphi  // shape >  0
+		); // returns double
+  // ------------------------------------------------- //
+  // initializations of vs, weightS, Lambdas, betas, S //
+  // ------------------------------------------------- //
+  for (ik = 0 ; ik < K ; ik ++)
+    {
+      for (ih = 0 ; ih < (M-1) ; ih ++) vs[ik][ih] = rbeta(1.0,D);
+      vs[ik][M-1]=1.0;
+  
+      weightS[ik][0] = vs[ik][0];
+      w = 1.0 ;
+      for (ih=0; ih < M; ih++)
+	{
+	  if (ih > 0){
+	    w *= (1.0-vs[ik][ih-1]);
+	    weightS[ik][ih] = vs[ik][ih]*w;
+	  }
+	  Lambdas[ik][ih] =  runif(smallValue,
+				   gam); // return double
+	  betas[ik][ih] = runif(
+				smallValue, // min
+				phi // max
+				);
+
+	  //Rprintf("\n ik %d ih %d beta %f Lambda %f",ik,ih,betas[ik][ih],Lambdas[ik][ih]);
+	}
+      for (iN = 0 ; iN < mks[ik]; iN++ ) S[ik][iN] = 0;
+    }
+
+
+
+
+
+
+  // Storage
+  R_CheckUserInterrupt(); 
+  R_ProcessEvents();
+  R_FlushConsole(); 
+
+
+  // http://stackoverflow.com/questions/8720550/how-to-return-array-of-structs-from-call-to-c-shared-library-in-r
+  SEXP res = PROTECT(allocVector(VECSXP,12)); // result is stored in res
+  SEXP post_S = allocVector(INTSXP, B*tot_m); 
+  SET_VECTOR_ELT(res, 0, post_S); 
+  SEXP post_betas = allocVector(REALSXP, B*tot_m); 
+  SET_VECTOR_ELT(res, 1, post_betas); 
+  SEXP post_Lambdas = allocVector(REALSXP, B*tot_m);
+  SET_VECTOR_ELT(res, 2, post_Lambdas);
+ 
+  SEXP post_betas_uni = allocVector(REALSXP, B*M*K); 
+  SET_VECTOR_ELT(res, 3, post_betas_uni); 
+  SEXP post_Lambdas_uni = allocVector(REALSXP, B*M*K);
+  SET_VECTOR_ELT(res, 4, post_Lambdas_uni); 
+  SEXP post_vs = allocVector(REALSXP, B*M*K);
+  SET_VECTOR_ELT(res, 5, post_vs); 
+  SEXP post_weightS = allocVector(REALSXP, B*M*K);
+  SET_VECTOR_ELT(res, 6, post_weightS); 
+
+  SEXP post_D = allocVector(REALSXP, B);
+  SET_VECTOR_ELT(res, 7, post_D); 
+  SEXP post_phi = allocVector(REALSXP, B);
+  SET_VECTOR_ELT(res, 8, post_phi); 
+  SEXP post_gam = allocVector(REALSXP, B);
+  SET_VECTOR_ELT(res, 9, post_gam); 
+  //SEXP post_dum = allocVector(REALSXP, B);
+  //SET_VECTOR_ELT(res, 10, post_dum); 
+
+  SEXP post_AR = allocVector(REALSXP,Nacc); // ct_integ_tot:
+  SET_VECTOR_ELT(res, 10, post_AR);
+  
+  SEXP post_can = allocVector(REALSXP,Nacc); // ct_integ_tot:
+  SET_VECTOR_ELT(res, 11, post_can);
+  
+
+  
+  // Let's Roll! MCMC! 
+  for (int iB = 0 ; iB < B ; iB++)
+    {
+      //  Update S, a vector of length N, containing the cluster index of random effect 1 of each patient.
+      //  the cluster index is between 1 and M.
+      //  conjugate: posterior distribution of S has a categorical distribution with M categories. 
+      //  if (printing && iB%printEvery==0)  Rprintf("\v\v Step 4");
+      for (ik = 0 ; ik < K ; ik++)
+	{
+	  for (iN = 0 ; iN < mks[ik] ; iN++)
+	    { 
+	      // Given patient iN, compute P(H_1i=ih;-) for each ih 
+	      // P(H_1i=ih;-) = prod_{i=1}^{# repeated measure} dnbinom(yij; size=exp(b0+b1*x1i+..), prob=1/(gij+1))
+	      for (ih=0; ih < M; ih++ ) postprob[ik][ih] = dweibull(ts[ik][iN],betas[ik][ih],Lambdas[ik][ih],0)*weightS[ik][ih];
+	      S[ik][iN] = sample(postprob[ik],M); 
+	    }
+	  // Update vs, a vector of length M, containing the latent variable v, used to construct pis. 
+	  // Once vs[ih] is updated, update the probabilities of the categorical distribution of H1 based on the formula:
+	  // weightS[0] = vs[0]
+	  // weightS[ih]= vs[ih]*(1-vh[ih-1])**(1-vh[ih-2])*...**(1-vh[0]) for ih =1,2,...M-1
+	  w = 1.0;
+	  for (ih = 0 ; ih < (M-1) ; ih ++) // vs[M-1] = 1 always!
+	    {
+	      i1 = 0.0;    // # patients with S == ih
+	      i2 = 0.0; // # patients with S > ih
+	      for (iN = 0 ; iN < mks[ik]; iN++ ) 
+		{
+		  if ( S[ik][iN] == ih ) i1++ ;
+		  if ( S[ik][iN] > ih ) i2++ ;
+		}
+	      vs[ik][ih] = rbeta(
+				 1.0 + i1, 
+				 D + i2 
+				 );
+	      //Rprintf("ih %d sp1 %f sp2 %f",ih, (double) 1+i1+idh ,  D + (double)i2 + (double)ivec);
+	      if (ih > 0) w *= (1.0-vs[ik][ih-1]);
+	      weightS[ik][ih] = vs[ik][ih]*w;
+	    }
+	  weightS[ik][M-1] = w*(1-vs[ik][M-2]);
+	  
+	  // Updating Lambdas[ih] and betas[ih]
+	  for (ih=0;ih < M ; ih ++)
+	    {
+	      // Update Lambdas M-H
+	      candi = rnorm(Lambdas[ik][ih],can[1]);
+	      if (weightS[ik][ih] > 0.1) ct_tot[1]++;
+	      // the algorithm requires to compute Lambda hence Lambda and beta must not be too small
+	      if (candi > smallValue && candi < gam)  
+		{
+		  MHrate = 0.0;  // If there is no obs to h^th component, candi is always accepted if it lies within [0.0001, phi]
+		  for (iN = 0 ; iN < mks[ik] ; iN++)
+		    {
+		      if (S[ik][iN]==ih)
+			MHrate += dweibull(ts[ik][iN],betas[ik][ih],candi,1) - dweibull(ts[ik][iN],betas[ik][ih],Lambdas[ik][ih],1);
+		    }
+		  
+		  reasonable = R_FINITE(dweibull(6.0,betas[ik][ih],candi,0));
+		  /* if(!reasonable)  
+		     Rprintf("\n ik %d ih %d betas %f candi %f smallValue %f 
+		     gam %f \n candi > smallValue %d candi > smallValue && candi < gam %d \n", 
+		     ik,ih,betas[ik][ih],candi,smallValue, gam,candi > smallValue, 
+		     candi > smallValue && candi < gam); */
+		  
+		  // If the proposed beta does not return finite value of density of Weibull, such proposal is not accepted
+		  if (runif(0.0,1.0) < exp(MHrate) && reasonable )
+		    {
+		      if (weightS[ik][ih] > 0.1) ct_acc[1]++;
+		      Lambdas[ik][ih] = candi;
+		    }
+		}
+	      
+	      // Update betas M-H
+	      candi = rnorm(betas[ik][ih],can[0]); 
+	      if (weightS[ik][ih] > 0.1) ct_tot[0]++;
+	      // the algorithm requires to compute Lambda^beta hence Lambda and beta must not be too small
+	      if (candi > smallValue && candi < phi)  
+		{
+		  MHrate = 0.0;  // If there is no obs to h^th component, candi is always accepted if it lies within [0.0001, phi]
+		  for (iN = 0 ; iN < mks[ik] ; iN++)
+		    {
+		      if (S[ik][iN]==ih)
+			MHrate += dweibull(ts[ik][iN],candi,Lambdas[ik][ih],1) -
+			  dweibull(ts[ik][iN],betas[ik][ih],Lambdas[ik][ih],1);
+		    }
+		  // candi could be extreme values when no one belong to that class
+		  // necessary to check that (candi,Lambdas[ik][ih]) returns finite value
+		  reasonable = R_FINITE(dweibull(6.0,candi,Lambdas[ik][ih],0));
+		  // if(!reasonable) Rprintf("\n ik%d ih%d candi %f Lambda %f",ik,ih,candi,Lambdas[ik][ih]);
+
+		  // If the proposed beta does not return finite value of density of Weibull, such proposal is not accepted
+		  if (runif(0.0,1.0) < exp(MHrate) && reasonable)
+		    {
+		      if (weightS[ik][ih] > 0.1) ct_acc[0]++;
+		      betas[ik][ih] = candi;
+		    }
+		}
+	    }
+	}
+
+
+      
+      // Update phi 
+      /* Step 3: update phi
+	 phi  ~ pareto(shape=aphi*,location=loc_phi*) 
+	 => phi |  betas ~ pareto(shape=aphi+Nuniq,location=max(betas,loc_phi)) */
+      phi = rpareto(max_MatScal(K, M, betas,loc_phi), //  const double location, // location > 0
+		    M*K + aphi             //  const double shape // shape >  0
+		    );
+
+      /* Update gamma:
+	 gamma ~pareto(shape=aGam,location=loc_Gam) via M-H
+      */
+      gam = rpareto(max_MatScal(K, M, Lambdas,loc_Gam), //  const double location, // location > 0
+		    M*K + aGam             //  const double shape // shape >  0
+		    );
+
+      // Update D
+      // D ~ gamma(scale=a.D,shape=b.D) = gamma(scale=a.D,shape=1/ib.D)  
+ 
+      MHrate = 0.0;
+      candi = rnorm(D,can[2]);
+      ct_tot[2]++;
+      if (a_D <= candi && candi <= ib_D )
+	{
+	  for (ik = 0 ; ik < K; ik++)
+	    for (ih = 0; ih < M-1 ; ih++)
+	      MHrate += dbeta(vs[ik][ih], 1.0, candi,1) - dbeta(vs[ik][ih], 1.0, D,1);
+	  if ( runif(0,1.0) < exp(MHrate) )
+	    {
+	      D = candi;
+	      ct_acc[2]++;
+	    }
+	}
+
+      if (iB < burnin)
+	{
+	  for (ih = 0; ih < Nacc ; ih++)
+	    {
+	      w = ct_acc[ih]/ct_tot[ih];
+	      if (can[ih] > minCan[ih] && can[ih] < maxCan[ih])
+		{
+		  if (w < 0.3) can[ih] *= 0.97;
+		  else if (w > 0.6) can[ih] *=1.01;
+		}
+	      else if (can[ih] < minCan[ih]) can[ih] = minCan[ih];
+	      else if (can[ih] > maxCan[ih]) can[ih] = maxCan[ih];
+	    }
+	}
+      else if (iB==burnin)
+	{
+	  for (ih = 0; ih < Nacc ; ih++)
+	    {
+	      ct_tot[ih] = 0.0;
+	      ct_acc[ih] = 0.0;
+	    }
+	}
+
+      // Store the result from this iteration
+      for (ik = 0 ; ik < K ; ik++ )
+	{
+	  for (iN = 0 ; iN < mks[ik] ; iN++ )
+	    {
+	      idh = iN + cumsum_m[ik] + iB * tot_m; // need to think here
+	      INTEGER(post_S)[idh] = S[ik][iN];
+	      REAL(post_betas)[idh] = betas[ik][S[ik][iN]];
+	      REAL(post_Lambdas)[idh] = Lambdas[ik][S[ik][iN]]; 
+	    }
+	  for (ih = 0 ; ih < M; ih++ )
+	    {
+	      idh = ih + ik*M + iB * K * M;
+	      REAL(post_betas_uni)[idh] = betas[ik][ih];
+	      REAL(post_Lambdas_uni)[idh] = Lambdas[ik][ih]; 
+	      REAL(post_weightS)[idh] = weightS[ik][ih];
+	      REAL(post_vs)[idh] = vs[ik][ih]; 
+	    }
+	}
+
+      REAL(post_D)[iB] = D;
+      REAL(post_phi)[iB] = phi;
+      REAL(post_gam)[iB] = gam;
+      //REAL(post_dum)[iB] = dum;
+      R_CheckUserInterrupt(); 
+      R_ProcessEvents();
+      R_FlushConsole(); 
+      if(iB % printFreq == 0) 
+	{
+	  Rprintf("\v %d iterations are done...   ", iB);
 	  //R_ProcessEvents();
 	}
       
@@ -1325,11 +1698,391 @@ double mixtureP_weib(double pr[],const double ti, const double betas[], const do
   return temp-alpha;
 }
 
+/* // sprodC2 compute prod_{j \ne k } Pr(eta_j > t | data) */
+/* SEXP sprobC2(SEXP sortUs_, SEXP tsGrid_, SEXP CDF_, SEXP TsOthers_,  */
+/* 	     SEXP ms_, SEXP par_, SEXP c0s_, SEXP alpha_,SEXP max_m_) */
+/* { */
+/*   GetRNGstate(); */
+
+/*   const double *sortUs = REAL(sortUs_); */
+/*   const double *tsGrid = REAL(tsGrid_); */
+/*   const double *CDF = REAL(CDF_); // the values of CDF of this specie (corresponding to ts) */
+/*   const double *TsOthers = REAL(TsOthers_); // the values of CDF of other species (corresponding to ts) */
+/*   const int *ms = INTEGER(ms_); */
+/*   const double alpha = REAL(alpha_)[0]; */
+/*   const double *c0s = REAL(c0s_); */
+/*   const int NMC = length(sortUs_); */
+/*   const int Ngrid = length(tsGrid_); */
+/*   const int K1 = length(ms_); */
+/*   const int max_m = INTEGER(max_m_)[0]; */
+
+/*   int iUpper, iLower=0,iMiddle; */
+/*   double sampleQ, u, prod, zeta, temp = 0; */
+
+/*   SEXP res = PROTECT(allocVector(VECSXP,1)); // result is stored in res */
+/*   SEXP mat = allocVector(REALSXP, 1 );  */
+/*   SET_VECTOR_ELT(res, 0, mat);  */
 
 
-// extern "C"{
-//   SEXP getDens_weib(SEXP ts_, SEXP prob_, SEXP Lambdas_, SEXP betas_, SEXP M_, SEXP B_,SEXP alpha_,SEXP densi_);
-// }
+/*   int i2,ik; */
+/*   double par[K1][2]; */
+/*   Rprintf("\n max_n %d",max_m); */
+/*   for (ik = 0; ik < K1 ; ik++){ */
+/*     par[ik][0] = REAL(par_)[ik*2]; */
+/*     par[ik][1] = REAL(par_)[ik*2+1]; */
+/*     Rprintf("\n par[%d][0] %f",ik,par[ik][0]); */
+/*     Rprintf("\n par[%d][1] %f",ik,par[ik][1]); */
+/*     Rprintf("\n c0s[%d] %f",ik,c0s[ik]); */
+/*   } */
+
+/*   Rprintf("NMC %d Ngrid %d K1 %d",NMC, Ngrid, K1); */
+/*   Rprintf("\n length(TsOthers_) %d ",length(TsOthers_)); */
+
+/*   int empirical[K1]; */
+/*   for (i2 = 0 ; i2 < K1 ; i2++) empirical[i2] = 0; */
+/*   for (int i=0 ; i < NMC; i++) // compute the  */
+/*     { */
+/*       R_CheckUserInterrupt();  */
+/*       R_ProcessEvents(); */
+/*       R_FlushConsole();  */
+/*       // STEP 1: generate sample of size N.MC from uniform dist'n */
+/*       //Rprintf("\n\n i %d",i); */
+/*       // t[w > p[i]] is the values of F; F(t) > p[i] the smallest of such is the p[i]^th quantile  */
+/*       u = sortUs[i]; */
+/*       iUpper = Ngrid-1; */
+      
+/*       // iLower is updated */
+/*       while (iLower + 1 < iUpper) */
+/*       	{ */
+/*       	  iMiddle = (int) (iLower + iUpper)/2; */
+/* 	  //Rprintf("\n i %d iLower %d iUpper %d u %f",i, iLower,iUpper, u); */
+/* 	  //Rprintf("\n iMiddle %d CDF[ iMiddle ] %f",iMiddle,CDF[ iMiddle ]); */
+/*        	  if (CDF[ iMiddle ] < u){ */
+/*       	    iLower = iMiddle; */
+/*       	  }else{ // CDF[ iMiddle ] >= u */
+/*       	    iUpper = iMiddle; */
+/*       	  } */
+/*       	} */
+/*       sampleQ = tsGrid[iUpper];// sampled quantile from Pr(eta_{k,alpha} <= t | data) */
+/*       // Get H */
+/*       prod = 1; */
+/*       for (ik = 0; ik < K1; ik++) */
+/* 	{ */
+/* 	  i2 = empirical[ik]; */
+/* 	  while(TsOthers[ik*max_m + i2] <= sampleQ) i2++; */
+	    
+/* 	  // The number of Ts from the species i2 such that Ts <= sampleQ minimum is zero */
+/* 	  empirical[ik] = i2; */
+	  
+/* 	  zeta = empirical[ik] + c0s[ik]*pweibull(sampleQ,par[ik][0],par[ik][1],1,0); // shape scale zetaive_log */
+/* 	  prod *= pbeta(alpha, zeta, c0s[ik] + ms[ik] - zeta, 1, 0); */
+	  
+/* 	  //Rprintf("\n alpha %f sampleQ %f prod %f zeta %f c+m-zeta %f empirical[%d] %d      ms[%d] %d    c0s %f", */
+/* 	  //alpha, sampleQ,   prod,   zeta,   c0s[ik] + ms[ik] - zeta,  ik, empirical[ik],    ik, ms[ik] ,    c0s[ik]); */
+/* 	} */
+/*       temp = temp + prod; */
+/*     } */
+/*   REAL(mat)[0] = temp/NMC; */
+/*   // returns sum_j prod_{k !=s } P( Fs^{-1}(alpha)^(j) <= Fk^{-1}(alpha) | data) / N.MC */
+/*   PutRNGstate(); */
+/*   UNPROTECT(1); */
+/*   return res; */
+/* } */
+
+
+
+
+double nu(const double t,const double data[] ,const double c0, const double shape, const double scale, int *icountprev, const int n)
+{
+  double F0 = pweibull(t,shape,scale,1,0);
+  int icount = *icountprev;
+
+  while( data[icount] <= t & icount <= n)
+    {
+      //Rprintf("\n t %f data[%d] %f",t,icount,data[icount]);
+      icount++;
+    }
+  *icountprev = icount;
+  return (icount + F0*c0);
+}
+
+double petapost(const double t,const double shape,const double scale,const double alpha,const double data[], 
+		const double c0,int *icountprev, const int n)
+    {
+      double shape1 = nu(t,data,c0,shape,scale,icountprev,n);
+      double shape2 = c0 + n - shape1;
+      if (shape1 < 1E-20) shape1 = 1E-20;
+      if (shape2 < 1E-20) shape2 = 1E-20;
+      return (1 - pbeta(alpha,shape1,shape2,1,0)); 
+    }
+
+SEXP cdf_sub(SEXP sortTs,SEXP shape, SEXP scale, SEXP alpha, SEXP dat,SEXP c0)
+{
+  
+  GetRNGstate();
+
+  const int n = length(dat);
+  const int M = length(sortTs);
+  SEXP res = PROTECT(allocVector(VECSXP,1)); // result is stored in res
+  SEXP mat = allocVector(REALSXP, M); 
+  SET_VECTOR_ELT(res, 0, mat); 
+  
+  int icountprev = 0;
+  for (int it = 0 ; it < M; it++ ){
+    R_CheckUserInterrupt(); 
+    R_ProcessEvents();
+    R_FlushConsole(); 
+    REAL(mat)[it] = petapost(REAL(sortTs)[it] , 
+			     REAL(shape)[0], REAL(scale)[0],
+			     REAL(alpha)[0],REAL(dat), 
+			     REAL(c0)[0],&icountprev, n);
+    //Rprintf("mF %d ",icountprev);
+
+  }
+  PutRNGstate();
+  UNPROTECT(1);
+  return res;
+
+}
+
+/* SEXP sprobC_unsort(SEXP NMC_, SEXP ts_, SEXP CDF_, SEXP CDFs_) */
+/* { */
+/*   GetRNGstate(); */
+
+/*   const long int NMC = INTEGER(NMC_)[0]; */
+/*   const double *ts = REAL(ts_); */
+/*   const double *CDF = REAL(CDF_); // the values of CDF of this specie (corresponding to ts) */
+/*   const double *CDFs = REAL(CDFs_); // the values of CDF of other species (corresponding to ts) */
+
+/*   const int Ngrid = length(ts_); */
+/*   const int K1 = length(CDFs_)/length(CDF_); */
+
+/*   double * sortUs = malloc(NMC * sizeof(double)); */
+
+  
+/*   for (int i = 0 ;i < NMC ; i++) */
+/*     { */
+/*       sortUs[i]=unif_rand(); */
+/*     } */
+/*   R_rsort(sortUs, NMC);  */
+/*   //for (int i = 0 ;i < NMC; i++)  */
+/*   //    Rprintf("\n %1.3f ",sortUs[i]);  */
+
+
+/*   int iUpper, iLower=0,iMiddle; */
+/*   double sampleQ, u, prod, temp = 0; */
+
+/*   SEXP res = PROTECT(allocVector(VECSXP,1)); // result is stored in res */
+/*   SEXP mat = allocVector(REALSXP, 1 );  */
+/*   SET_VECTOR_ELT(res, 0, mat);  */
+
+/*   Rprintf("NMC %d Ngrid %d K1 %d",NMC, Ngrid, K1); */
+
+/*   for (int i=0 ; i < NMC; i++) // compute the */
+/*     { */
+/*       R_CheckUserInterrupt(); */
+/*       R_ProcessEvents(); */
+/*       R_FlushConsole(); */
+/*       // STEP 1: generate sample of size N.MC from uniform dist'n */
+/*       // Rprintf("i %d",i); */
+/*       // t[w > p[i]] is the values of F; F(t) > p[i] the smallest of such is the p[i]^th quantile */
+/*       u = sortUs[i]; */
+/*       iUpper = Ngrid-1; */
+
+/*       // iLower is updated */
+/*       while (iLower + 1 < iUpper) */
+/*       	{ */
+/*       	  iMiddle = (int) (iLower + iUpper)/2; */
+/*   	  //Rprintf("\n i %d iLower %d iUpper %d u %f",i, iLower,iUpper, u); */
+/*   	  //Rprintf("\n iMiddle %d CDF[ iMiddle ] %f",iMiddle,CDF[ iMiddle ]); */
+/*        	  if (CDF[ iMiddle ] < u){ */
+/*       	    iLower = iMiddle; */
+/*       	  }else{ // CDF[ iMiddle ] >= u */
+/*       	    iUpper = iMiddle; */
+/*       	  } */
+/*       	} */
+/*       sampleQ = ts[iUpper];// sampled quantile from Pr(eta_{k,alpha} <= t | data) */
+/*       // Get H */
+/*       prod = 1; */
+/*       for (int ik=0; ik < K1; ik++){ */
+/*       	prod *= (1 - CDFs[iUpper + Ngrid*ik]); */
+/*       } */
+/*       temp = temp + prod; */
+/*     } */
+/*   REAL(mat)[0] = (temp/NMC); */
+/*   // returns sum_j prod_{k !=s } P( Fs^{-1}(alpha)^(j) <= Fk^{-1}(alpha) | data) / N.MC */
+/*   PutRNGstate(); */
+/*   UNPROTECT(1); */
+/*   free(sortUs); /\* releases the memory for other applications *\/ */
+/*   return res; */
+/* } */
+
+
+SEXP sprobC(SEXP sortUs_, SEXP ts_, SEXP CDF_, SEXP CDFs_)
+{
+  GetRNGstate();
+
+  //const long int NMC = INTEGER(NMC_)[0];
+  const double *ts = REAL(ts_);
+  const double *CDF = REAL(CDF_); // the values of CDF of this specie (corresponding to ts)
+  const double *CDFs = REAL(CDFs_); // the values of CDF of other species (corresponding to ts)
+
+  const int Ngrid = length(ts_);
+  const int K1 = length(CDFs_)/length(CDF_);
+
+  const double *sortUs = REAL(sortUs_);
+  const int NMC = length(sortUs_);
+  /* double * sortUs = malloc(NMC * sizeof(double)); */  
+  /* for (int i = 0 ;i < NMC ; i++) */
+  /*   { */
+  /*     sortUs[i]=unif_rand(); */
+  /*   } */
+  /* R_rsort(sortUs, NMC);  */
+  //for (int i = 0 ;i < NMC; i++) 
+  //    Rprintf("\n %1.3f ",sortUs[i]); 
+
+
+  int iUpper, iLower=0,iMiddle;
+  double sampleQ, u, prod, temp = 0;
+
+  SEXP res = PROTECT(allocVector(VECSXP,1)); // result is stored in res
+  SEXP mat = allocVector(REALSXP, 1 ); 
+  SET_VECTOR_ELT(res, 0, mat); 
+  
+  Rprintf("NMC %d Ngrid %d K1 %d",NMC, Ngrid, K1);
+
+  for (int i=0 ; i < NMC; i++) // compute the
+    {
+      R_CheckUserInterrupt();
+      R_ProcessEvents();
+      R_FlushConsole();
+      // STEP 1: generate sample of size N.MC from uniform dist'n
+      // Rprintf("i %d",i);
+      // t[w > p[i]] is the values of F; F(t) > p[i] the smallest of such is the p[i]^th quantile
+      u = sortUs[i];
+      iUpper = Ngrid-1;
+
+      // iLower is updated
+      while (iLower + 1 < iUpper)
+      	{
+      	  iMiddle = (int) (iLower + iUpper)/2;
+  	  //Rprintf("\n i %d iLower %d iUpper %d u %f",i, iLower,iUpper, u);
+  	  //Rprintf("\n iMiddle %d CDF[ iMiddle ] %f",iMiddle,CDF[ iMiddle ]);
+       	  if (CDF[ iMiddle ] < u){
+      	    iLower = iMiddle;
+      	  }else{ // CDF[ iMiddle ] >= u
+      	    iUpper = iMiddle;
+      	  }
+      	}
+      // iUpper is the smallest index such that CDF[index] >= u i.e. ts[index] is the smallest t such that CDF(t) >= u
+      sampleQ = ts[iUpper];// sampled quantile from Pr(eta_{k,alpha} <= t | data)
+      // Get H
+      prod = 1;
+      for (int ik=0; ik < K1; ik++){
+      	prod *= (1 - CDFs[iUpper + Ngrid*ik]);
+      }
+      temp = temp + prod;
+    }
+  REAL(mat)[0] = (temp/NMC);
+  // returns sum_j prod_{k !=s } P( Fs^{-1}(alpha)^(j) <= Fk^{-1}(alpha) | data) / N.MC
+  PutRNGstate();
+  UNPROTECT(1);
+  //free(sortUs); /* releases the memory for other applications */
+  return res;
+}
+
+
+
+
+SEXP sprobC2(SEXP sortUs_, SEXP ts_, SEXP CDF_, SEXP CDFs_, SEXP EXCLUDE_k)
+{
+  GetRNGstate();
+
+  //const long int NMC = INTEGER(NMC_)[0];
+  const double *ts = REAL(ts_);
+  const double *CDF = REAL(CDF_); // the values of CDF of this specie (corresponding to ts)
+  const double *CDFs = REAL(CDFs_); // the values of CDF of other species (corresponding to ts)
+
+  const int Ngrid = length(ts_);
+  const int K1 = length(CDFs_)/length(CDF_);
+
+  const double *sortUs = REAL(sortUs_);
+  const int NMC = length(sortUs_);
+  /* double * sortUs = malloc(NMC * sizeof(double)); */  
+  /* for (int i = 0 ;i < NMC ; i++) */
+  /*   { */
+  /*     sortUs[i]=unif_rand(); */
+  /*   } */
+  /* R_rsort(sortUs, NMC);  */
+  //for (int i = 0 ;i < NMC; i++) 
+  //    Rprintf("\n %1.3f ",sortUs[i]); 
+
+
+  int iUpper, iLower=0,iMiddle;
+  double sampleQ, u, prod1, prod2, temp1 = 0, temp2 = 0, temp3 = 0;
+
+  SEXP res = PROTECT(allocVector(VECSXP,3)); // result is stored in res
+  SEXP mat1 = allocVector(REALSXP, 1 ); 
+  SET_VECTOR_ELT(res, 0, mat1); 
+  SEXP mat2 = allocVector(REALSXP, 1 ); 
+  SET_VECTOR_ELT(res, 1, mat2);
+  SEXP eta = allocVector(REALSXP, 1);
+  SET_VECTOR_ELT(res, 2, eta);
+  //Rprintf("NMC %d Ngrid %d K1 %d",NMC, Ngrid, K1);
+
+  for (int i=0 ; i < NMC; i++) // compute the
+    {
+      R_CheckUserInterrupt();
+      R_ProcessEvents();
+      R_FlushConsole();
+      // STEP 1: generate sample of size N.MC from uniform dist'n
+      // Rprintf("i %d",i);
+      // t[w > p[i]] is the values of F; F(t) > p[i] the smallest of such is the p[i]^th quantile
+      u = sortUs[i];
+      iUpper = Ngrid-1;
+
+      // iLower is updated
+      while (iLower + 1 < iUpper)
+      	{
+      	  iMiddle = (int) (iLower + iUpper)/2;
+  	  //Rprintf("\n i %d iLower %d iUpper %d u %f",i, iLower,iUpper, u);
+  	  //Rprintf("\n iMiddle %d CDF[ iMiddle ] %f",iMiddle,CDF[ iMiddle ]);
+       	  if (CDF[ iMiddle ] < u){
+      	    iLower = iMiddle;
+      	  }else{ // CDF[ iMiddle ] >= u
+      	    iUpper = iMiddle;
+      	  }
+      	}
+      // iUpper is the smallest index such that CDF[index] >= u i.e. ts[index] is the smallest t such that CDF(t) >= u
+      sampleQ = ts[iUpper];// sampled quantile from Pr(eta_{k,alpha} <= t | data)
+      // Get H
+      prod1 = 1;
+      prod2 = 1;
+      for (int ik=0; ik < K1; ik++){
+      	prod1 *= (1 - CDFs[iUpper + Ngrid*ik]);
+	if (ik != INTEGER(EXCLUDE_k)[0]) prod2 *= (1 - CDFs[iUpper + Ngrid*ik]);
+      }
+      temp1 += prod1;
+      temp2 += prod2;
+      temp3 += sampleQ;
+    }
+  REAL(mat1)[0] = temp1/NMC;
+  if (INTEGER(EXCLUDE_k)[0] < 0 ){
+    REAL(mat2)[0] = R_NaReal;
+  }else{
+    REAL(mat2)[0] = temp2/NMC;
+  }
+  REAL(eta)[0] = temp3/NMC;
+  // returns sum_j prod_{k !=s } P( Fs^{-1}(alpha)^(j) <= Fk^{-1}(alpha) | data) / N.MC
+  PutRNGstate();
+  UNPROTECT(1);
+  //free(sortUs); /* releases the memory for other applications */
+  return res;
+}
+
+
+
+
 
 SEXP getDens_weib(SEXP ts_, SEXP weightS_, SEXP Lambdas_, SEXP betas_, SEXP M_, SEXP B_,SEXP alpha_,SEXP densi_)
 {
@@ -1359,6 +2112,8 @@ SEXP getDens_weib(SEXP ts_, SEXP weightS_, SEXP Lambdas_, SEXP betas_, SEXP M_, 
 
   for (int iB=0; iB < B; iB++)
     {
+      R_CheckUserInterrupt(); 
+      R_ProcessEvents();
       for (int ih=0;ih < M ; ih++) pr[ih]=weightS[ih+M*iB];
       // rN is a vector of length M containing the number of draws from each of the M components
       // sum(rN) = L;
@@ -1373,9 +2128,12 @@ SEXP getDens_weib(SEXP ts_, SEXP weightS_, SEXP Lambdas_, SEXP betas_, SEXP M_, 
 	      for (int ih =0; ih < M ; ih++) 
 		//rN[0]/L*dweibull(ts[it],Lambdas[M*iB+0],betas[M*iB+0],0))+...+rN[M-1]/L*dweibull(ts[it],Lambdas[M*iB+M-1],betas[M*iB+M-1],0))
 		{
-		  idh = ih+M*iB;
+		  idh = ih + M*iB;
 		  if (pr[ih]>0)
 		    temp += (double) pr[ih]*dweibull(ts[it],betas[idh],Lambdas[idh],0);
+		  
+		  if (!R_FINITE(temp)) Rprintf("\ndens %f ts %f betas %f Lambdas %f",
+					       temp,ts[it],betas[idh],Lambdas[idh]);
 		}
 	      REAL(mat)[it+iB*lt]=temp; ///((double)L);
 	    }
@@ -1736,394 +2494,3 @@ SEXP getDens_weib(SEXP ts_, SEXP weightS_, SEXP Lambdas_, SEXP betas_, SEXP M_, 
 //   SEXP gibbsPU(SEXP inpts, SEXP inpB, SEXP inpprp_sd_beta, SEXP inpaV, SEXP inpbV, SEXP inpaphi, SEXP inpbphi, SEXP inpaGam, SEXP inpbGam, SEXP inpdum, SEXP inpmaxRecursion, SEXP inpepsilon, SEXP inpburnin, SEXP inpL, SEXP inppred, SEXP inpprintFreq,SEXP alpha_) ;
 // }
 
-
-
-// SEXP gibbsPU( SEXP inpts, SEXP inpB, SEXP inpprp_sd_beta, SEXP inpaV, SEXP inpbV, SEXP inpaphi, SEXP inpbphi, SEXP inpaGam, SEXP inpbGam, SEXP inpdum, SEXP inpmaxRecursion, SEXP inpepsilon, SEXP inpburnin, SEXP inpL, SEXP inppred, SEXP inpprintFreq, SEXP alpha_){
-
-//   /* ==== :Model description: =====
-//      ti | beta_i Klambda_i ~ kW(lambdai,beta_i)
-//      beta_i, Klambda_i | G ~ G
-//      G ~ DP(V,D)
-//      where D =  unif(beta; 0.0001,phi) * igamma(Klambda;shape=dum*,scale=gam) 
-//      gam     ~  gamma(shape=aGam*,rate=bGam*)
-//      phi     ~  pareto(shasssspe=aphi*,location=bphi*) 
-//      V       ~  gamma(shape=aV*,scale=1/bV*)
-     
-//      * are hyperparameters 
-//      Kottas recommended dum* = 2, aGam* = 1, aphi* = 2, aV = 2, and bV = 0.9 
-     
-//      The weibull pdf is parametrized as:
-//      k_W(t|Klambda,beta) = beta*t^{beta-1}/lambda * exp(- t^{beta}/Klambda)
-//      　　　
-//      　　The relationship with the standard weibull Weibul(shape=beta,scale=lambda) is: lambda = Klambda^{1/beta}
-//   */
-  
-//   // === Importing values === // 
-//   const double *ts=REAL(inpts); // array of length N
-//   const int B = INTEGER(inpB)[0]; 
-//   const double prp_sd_beta = REAL(inpprp_sd_beta)[0]; // step 1
-//   const double aV = REAL(inpaV)[0];                   // step 2
-//   const double bV = REAL(inpbV)[0]; 
-//   const double aphi = REAL(inpaphi)[0];               // step 3
-//   const double bphi = REAL(inpbphi)[0];               
-//   const double aGam = REAL(inpaGam)[0];               // step 4  
-//   const double bGam = REAL(inpbGam)[0]; 
-//   const double dum = REAL(inpdum)[0];   // default value should be 2 by Kottas
-//   const int maxRecursion = INTEGER(inpmaxRecursion)[0];
-//   const double epsilon = REAL(inpepsilon)[0];
-//   const int burnin = INTEGER(inpburnin)[0];
-//   const int L = INTEGER(inpL)[0];
-//   const int pred = INTEGER(inppred)[0];
-//   const int printFreq = INTEGER(inpprintFreq)[0];
-//   const int N = length(inpts);
- 
-//   double phi=0, gam=0, V=0, beta=0, nalda = 0.0, qi0=0, candi=0,tempDbl1=0, ti = 0, Newb=0, NewK=0;
-//   int iold = 0, Nuniq = 0, inew=0, ct_new=0,ct_accept=0, tempInt1 = 0, iN=0,iL=0,idh, S[N];
-//   unsigned long ct_integ=0,ct_integ_tot=0;
-//   bool uniqVanish = 0,bool_checknan = 0;
-//   vector<double> Klambdas(1),betas(1),qis(1),probs(2),Nset(1); // change the size 
-//   vector<int> N_Newbk;
-  
-//   // Create initial values of Klambdas, betas:
-//   V = rgamma(
-// 	     aV, // shape 
-// 	     1/bV  // scale
-// 	     );
-
-//   gam = rgamma(aGam,1/bGam);
-
-//   phi = rpareto(bphi, // location > 0
-// 		aphi  // shape >  0
-// 		); // returns double
-
-
-//   for (iN = 0 ; iN < N; iN++ ) S[iN] = 0;
-
-//   //Klambdas.resize (1);
-//   //betas.resize (1);
-//   Klambdas[0] =  rigamma(dum,gam); // return double
-//   betas[0] = runif(
-// 		   0.1, // min
-// 		   phi // max
-// 		   );
-//   Nuniq = betas.size();
-
-//   // Storage
-
-
-
-//   // http://stackoverflow.com/questions/8720550/how-to-return-array-of-structs-from-call-to-c-shared-library-in-r
-//   SEXP res = PROTECT(allocVector(VECSXP,10)); // result is stored in res
-//   SEXP post_S = allocVector(INTSXP, B*N); 
-//   SET_VECTOR_ELT(res, 0, post_S); 
-//   SEXP post_betas = allocVector(REALSXP, B*N); 
-//   SET_VECTOR_ELT(res, 1, post_betas); 
-//   SEXP post_Klambdas = allocVector(REALSXP, B*N);
-//   SET_VECTOR_ELT(res, 2, post_Klambdas); 
-//   SEXP post_Nuniq = allocVector(INTSXP, B);
-//   SET_VECTOR_ELT(res, 3, post_Nuniq); 
-//   SEXP post_V = allocVector(REALSXP, B);
-//   SET_VECTOR_ELT(res, 4, post_V); 
-//   SEXP post_phi = allocVector(REALSXP, B);
-//   SET_VECTOR_ELT(res, 5, post_phi); 
-//   SEXP post_gam = allocVector(REALSXP, B);
-//   SET_VECTOR_ELT(res, 6, post_gam); 
-//   SEXP post_Eta=allocVector(REALSXP,(B-burnin));
-//   SET_VECTOR_ELT(res, 7, post_Eta);
-//   SEXP post_ct_integ_tot = allocVector(REALSXP,2); // ct_integ_tot:
-//   SET_VECTOR_ELT(res,8,post_ct_integ_tot);
-//   SEXP post_ct_accept = allocVector(REALSXP,2); // ct_integ_tot:
-//   SET_VECTOR_ELT(res,9,post_ct_accept);
-
-//   GetRNGstate();
-  
-//   // MCMC! 
-//   for (int iB = 0 ; iB < B ; iB++)
-//     {
-
-//       // STEP 1: Update betas, Klambdas, S and Nuniq
-//       for ( iN=0; iN < N ; iN++)
-// 	{
-
-// 	  if (Klambdas.size() != betas.size() || Klambdas.size() != Nuniq) 
-// 	    {
-// 	      Rprintf("bug! b.s(): %d",betas.size());
-// 	      Rprintf("bug! Nuniq: %d",Nuniq);
-// 	      error("error");
-// 	    }
-
-// 	  iold = S[iN];     // class belonging of the i^th obs from the previous step
-// 	  ti = ts[iN];      // the i^th observation
-// 	  /* Check if the i^th obs is creating a set by itself
-// 	     if so, the unique parameter set corresponding the i^th obs
-// 	     will disappear after this iteration */
-// 	  uniqVanish = 1;
-// 	  for (tempInt1=0; tempInt1 < N; tempInt1++ ) 
-// 	    {
-// 	      if (S[tempInt1]==iold && tempInt1!=iN)
-// 		{
-// 		  /* tempInt1^th patient also belongs to iold^th cluster
-// 		     => iN^th patient is NOT creating a uniqe cluster   */
-// 		  uniqVanish = 0; 
-// 		  break; 
-// 		  // if we find at least one observation which  belongs to the same cluster as iN, uniqVanish = 0 and we are done.
-// 		}
-// 	    }
-	  
-// 	  // prob( the i^th observation belongs to the existing cluster k  ); k = 1,..., Nuniq 
-// 	  getQis(
-// 		 qis,       // vector<double>  // qis changes the value!
-// 		 iN,        // const int 
-// 		 S,         // const IntegerVector
-// 		 ti,        // const NumericVector &ti,
-// 		 betas,     // const vector<double> 
-// 		 Klambdas,   // const vector<double> 
-// 		 N
-// 		 );
-// 	  // prob(  the i^th is from the new cluster  ) 
-// 	  getQi0(
-// 		 qi0, // double &qi0,
-// 		 maxRecursion, // const int &maxRecursion,
-// 		 epsilon,  // const double &epsilon,
-// 		 phi,      // const double &phi,
-// 		 ti,       // const NumericVector &ti,
-// 		 gam,      // const double &gam,
-// 		 dum,      // const double &dum,
-// 		 V       //   const double &V,
-// 		 ,ct_integ, // unsigned long &ct_integ,
-// 		 ct_integ_tot //unsigned long &ct_integ_tot
-// 		 );
-
-// 	  /* qis = c(qis, q0) */
-// 	  qis.push_back(qi0);
-	  
-	  
-// 	  if (qis.size()!= Nuniq+1) Rprintf("bug!   qis.s(): %d", qis.size()); // bug trap
-	  
-// 	  if (uniqVanish == 1 && qis[iold] != 0 )  // bug trap
-// 	    {
-// 	      Rprintf(":::bug::: iN: %d uV: %d iold: %d qis[iold]: %f",iN,uniqVanish, iold, qis[iold]);
-// 	      Rprintf(" qis:");
-// 	      for (int iqis = 0; iqis< qis.size();iqis++) Rprintf(" %f",qis[iqis]);
-// 	      Rprintf(" S:");
-// 	      for (int iSS = 0; iSS< N ;iSS++) Rprintf(" %f",S[iSS]);
-// 	      Rprintf(" Klambdas:");
-// 	      for (int iSS = 0; iSS< Klambdas.size();iSS++) Rprintf(" %f",Klambdas[iSS]);
-// 	      Rprintf(" betas:");
-// 	      for (int iSS = 0; iSS< betas.size();iSS++) Rprintf(" %f",betas[iSS]);
-// 	      error("error");
-// 	    }
-// 	  /* S[iN]: A integer between 0 and Nuniq. If it is between 0 and beta.size()-1 then 
-// 	     The iN^th observation belongs to the existing cluster.
-// 	     If it is beta.size(), then new cluster will be created.  */
-
-// 	  S[iN]= sample2(qis,        // vector<double> &prob, // A vector of any length, the elements do not have to add up to 1             
-// 			 0         // int &tempInt2,  // tempInt2 == 0 then probability will be adjusted to be summed up to 10000
-// 			 );
-
-
-// 	  if (S[iN]==Nuniq) 
-// 	    {
-// 	      //Rprintf(" IN! generate samples from the base distribution ");
-// 	      ct_new++;
-	    
-// 	      /* The new parameter set (lambda,beta) is drawn
-// 		 from the base distribution.
-// 		 Input
-// 		 STEP 1-1: generate a new lambda value from its full conditional: ivgamma 
-// 		 lambda ~ igamma(shape=dum,scale=gam) => lambda|t1 ~ igamma(shape=dum+1,scale=gam+t1^beta) 
-// 		 = 1/lambda ~ gamma(shape=dum+1,scale=1/(gam+t1^beta))  */
-// 	      if (iold < 0 || iold >= betas.size() ){
-// 		Rprintf("\v bug trap 9! iold=",iold);
-// 		for (vector<double>::size_type i_st=0; i_st <betas.size(); i_st++)
-// 		  Rprintf("\v betas[ii]: %f",betas[i_st]);
-// 		error("error");
-// 	      }
-
-// 	      //Rprintf("igamma %f2.2", tempDbl1);
-// 	      /* At this point Klambda.size() = Nuniq - 1. and Nuniq is defined from the previous step
-// 		 The next line adds the new value to Klambda[Nuniq] */
-// 	      Klambdas.push_back(rigamma(dum+1, // const double shape,
-// 					 gam+R_pow(ti,betas[iold]) //  const double scale,
-// 					 ) 
-// 				 ); 
-	     
-	  
-// 	      /* STEP 1-2: generate a beta via M-H
-// 		 generate a canbeta from the normal proposal distribution */
-// 	      beta = betas[iold];
-
-// 	      candi = rnorm(beta,prp_sd_beta);
-// 	      /* Left and Right truncation to avoid prior density = 0
-// 		 and for Weibull parameters to be well defined (i.e. beta > 0) */
-
-// 	      if (Nuniq != Klambdas.size()-1) // bug trap
-// 		{
-// 		  Rprintf("\v bug trap8!: Nuniq %d",Nuniq );
-// 		  for (vector<double>::size_type i_st=0; i_st <Klambdas.size(); i_st++)
-// 		    Rprintf("\v Klambdas[i]: %f",Klambdas[i_st]);
-// 		  error("error");
-// 		}
-
-// 	      if (candi < phi && 0.0001 < candi)
-// 		{
-// 		  tempDbl1 = dWEI2(ti,candi,Klambdas[Nuniq],1)-dWEI2(ti,beta,Klambdas[Nuniq],1);
-// 		  // const NumericVector &x,// const double &beta,
-// 		  //const double &Klambda,//const bool &logTF 
-			 
-// 		  if (R_FINITE(tempDbl1)) // !tempLV1[0] = TRUE means that tempDbl1 is not NA
-// 		    {
-// 		      if (runif(0.0,1.0) < exp(tempDbl1))
-// 			{
-// 			  beta=candi;
-// 			  ct_accept++;
-// 			}
-// 		    }else{
-// 		    Rprintf("\v checknan is TRUE! ti %f candi %f Klambdas[Nuniq] %f beta %f",ti,candi,Klambdas[Nuniq],beta);
-// 		  } // bug trap
-// 		}
-// 	      betas.push_back(beta);
-
-// 	    } // if (S[iN]==Nuniq)
-
-// 	  if(uniqVanish)
-// 	    {
-// 	      /* Since the number of unique sets of (lambda,beta) decreases,
-// 		 We must trim the vanished (lambda,beta) from setlb         */
-	      
-// 	      //Rprintf("!uV! iold %d Kl.s %d",iold,Klambdas.size());
-
-// 	      Klambdas.erase(Klambdas.begin()+iold); // Remove element at position iold
-// 	      betas.erase(betas.begin()+iold);       // Remove element at position iold
-// 	      for (tempInt1=0;tempInt1 < N;tempInt1++)
-// 		{
-// 		  if (S[tempInt1] > iold) S[tempInt1] -=1;
-// 		  if (S[tempInt1] < 0) { 
-// 		    Rprintf("bag trap10! tempInt1 %d and S[tempInt1] %d",tempInt1,S[tempInt1]);
-// 		    error("error");}
-// 		}
-// 	    } 
-	
-// 	  //for (tempInt1=0; tempInt1 < Klambdas.size(); tempInt1++) 
-// 	  //Rprintf(" new Klambdas %f ",Klambdas[tempInt1]);
-// 	  Nuniq = betas.size();  
-// 	} // Loop iN=0; iN < N ; iN++
-
-//       if (Klambdas.size()!=betas.size()){Rprintf("  bug trap 1! ");error("error");}
-
-
-
-//       // Step 2:  update V, the precision parameter
-    
-//       nalda = rbeta(V+1, N);
-//       probs[0]=(aV+Nuniq-1)/(N*(bV-log(nalda))+aV+Nuniq-1);
-//       probs[1] = 1-probs[0];
-	
-//       tempInt1 = sample2(probs,    // vector<double> &prob, // A vector of any length, the elements do not have to add up to 1
-// 			 0         // int &tempInt1, tempInt2 == 0 then probability will be adjusted to be summed up to 10000        
-// 			 );
-//       // double &tempDbl)
-//       if (tempInt1==0)
-// 	{
-// 	  V = rgamma(
-// 		     aV+Nuniq, // shape
-// 		     1/(bV-log(nalda)) // scale
-// 		     ); 
-// 	}else if(tempInt1==1){
-// 	V = rgamma( 
-// 		   aV+Nuniq-1,  // shape
-// 		   1/(bV-log(nalda))// scale
-// 		    ); 
-//       }
-	
-//       /* Step 3: update phi
-// 	 phi  ~ pareto(shape=aphi*,location=bphi*) 
-// 	 => phi |  betas ~ pareto(shape=aphi+Nuniq,location=max(betas,bphi)) */
-//       phi = rpareto(max_VecScal2(betas,bphi), //  const double location, // location > 0
-// 		    Nuniq + aphi             //  const double shape // shape >  0
-// 		    );
-
-//       /* Step 4: update gamma:
-// 	 gam     ~ gamma(shape=aGam*,rate=bGam*)
-// 	 => gam| lambda ~ gamma(shape=dum+) */
-
-//       gam = rgamma(
-// 		   aGam+dum*Nuniq, // shape 
-// 		   1/(bGam+sum_inv2(Klambdas))  // scale  // sum_inv(Klambda) = sum(1/Klambda)
-// 		   );
-
-//       if (Klambdas.size()!=betas.size()){Rprintf("  bug trap 2! ");error("error");}
-      
-	
-
-//       // Store the result from this iteration
-//       for (iN = 0 ; iN < N ; iN++ )
-// 	{
-// 	  idh = iN + iB * N;
-// 	  INTEGER(post_S)[idh] = S[iN];
-// 	  REAL(post_betas)[idh] = betas[S[iN]];
-// 	  REAL(post_Klambdas)[idh] = Klambdas[S[iN]]; 
-// 	}
-//       INTEGER(post_Nuniq)[iB] = Nuniq;
-//       REAL(post_V)[iB] = V;
-//       REAL(post_phi)[iB] = phi;
-//       REAL(post_gam)[iB] = gam;
-
-//       if (iB >= burnin)
-// 	{
-// 	  // Nset is a vector<double> of size Nuniq
-// 	  // The first 0 to Nuniq-1 entries will contain the number of observations in each clusters.
-// 	  // and the Nuniq^th entry contains V. The rest will contain zero.
-// 	  // Nuniq does not exceed N in this model
-// 	  Nset.resize(Nuniq+1);
-// 	  for (tempInt1 = 0; tempInt1 < Nuniq; tempInt1++) 
-// 	    {
-// 	      Nset[tempInt1] = 0.0;
-// 	      for (iN = 0 ; iN < N ; iN++ )
-// 		{
-// 		  if (S[iN]==tempInt1) ++Nset[tempInt1];
-// 		}
-// 	    }
-// 	  Nset[Nuniq] = V;
-	  
-// 	  tempInt1 = sample2(Nset,    // vector<double> &prob, 
-// 			     // A vector of any length, the elements do not have to add up to 1      
-// 			     0   // int &tempInt2, tempInt2 == 0 then probability will be adjusted to be summed up to 10000
-// 			     );
-// 	  if (tempInt1 < 0 ){Rprintf("  bug trap 3! ");error("error");}
-// 	  else if (tempInt1 > Nuniq ){Rprintf("  bug trap 11! Nuniq %d tempInt1 %d ", Nuniq,tempInt1);error("error");}
-	  
-// 	  // But probability will NOT be again computed to adjust to be summed up to 10000 this time because it is already.
-// 	  if (tempInt1==Nuniq)
-// 	    {
-// 	      Newb = runif(0.0001,phi);       // const double &beta shape
-// 	      NewK = rigamma(dum,gam);     // const double &Klambda
-// 	    }
-// 	  else if(tempInt1 < Nuniq || tempInt1 >= 0 )
-// 	    {
-// 	      Newb = betas[tempInt1];       // const double &beta shape
-// 	      NewK = Klambdas[tempInt1];     // const double &Klambda
-// 	    }else{error("bug at predictive dist!");}  
-// 	  REAL(post_Eta)[iB-burnin]=pow(-NewK*log(1-REAL(alpha_)[0]),1/Newb); 
-// 	}
-
-      
-//       if(iB % printFreq == 0) Rprintf(" %d iterations are done...   ", iB);
-      
-//     }
-//   // MCMC is done: Based on the predictive sample2s of (beta^{b},Klambda^{b}),b=1,...B, 
-//   // we approximate the predictive distribution of the alpha^{th} quantile as:
-//   // Pr(\tilde{eta}_{\alpha} <= t) = Pr( {- Klambda*log(1-alpha)}^{1/beta} <= t)
-//   //                               = E( Pr( {- Klambda*log(1-alpha)}^{1/beta} <= t| Klambda, beta) )
-//   //                         \approx sum_{b=1}^B Pr( {- Klambda^{b}*log(1-alpha)}^{1/beta^{b}} <= t| Klambda^{b}, beta^{b})
-//   //
-//   REAL(post_ct_integ_tot)[0] =ct_integ;
-//   REAL(post_ct_integ_tot)[1] =ct_integ_tot;
-//   REAL(post_ct_accept)[0] =ct_accept;
-//   REAL(post_ct_accept)[1] =ct_new;
-
-//   PutRNGstate();
-//   UNPROTECT(1);
-//   return res;
-
-// }
